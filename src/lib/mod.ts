@@ -1,3 +1,5 @@
+import { Event } from "./deps.ts";
+
 type DexErrReason = "TARGET_NOT_FOUND";
 
 // TODO: replace by a type switch between unique types
