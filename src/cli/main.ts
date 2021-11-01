@@ -1,4 +1,4 @@
-import { Dex, dirname, join } from "./deps.ts";
+import { crayon, Dex, DexEvents, dirname, Event, join } from "./deps.ts";
 
 // deno-lint-ignore no-explicit-any
 type DexConfig = any;
@@ -7,13 +7,49 @@ async function main() {
 	const configPath = await findConfig();
 	if (configPath == undefined) configNotFound();
 
-	console.log(`found config: ${configPath}`);
-
 	const dex = await tryParseConfig(configPath);
 	if (dex == undefined) failedToParse();
 
+	setupLogs(dex);
 	const args = Deno.args;
 	dex.run(args);
+}
+
+const yellow = crayon().yellow.bold;
+const white = crayon().white.bold;
+const green = crayon().green.bold;
+const red = crayon().red;
+
+function setupLogs(dex: Dex) {
+	dex.eventEmitter.on(
+		"inf_starting_target",
+		(targetName) =>
+			console.log(yellow(`┌── starting target `) + white(`'${targetName}'`)),
+	);
+
+	dex.eventEmitter.on(
+		"inf_finished_target",
+		(targetName) =>
+			console.log(green(`└-> finished target `) + white(`'${targetName}'`)),
+	);
+
+	dex.eventEmitter.on(
+		"err_circular_deps",
+		(deps, dep) =>
+			console.log(
+				red(`└─x circular dependencies `) + white(`'${deps.join(`/`)}'`) +
+					red(` requires `) + white(`'${dep}'`),
+			),
+	);
+
+	dex.eventEmitter.on(
+		"err_target_fail",
+		(targetName, error) =>
+			console.log(
+				red(`└─x failed target `) + white(`'${targetName}'`) +
+					red(` with error:\n`) + error,
+			),
+	);
 }
 
 async function findConfig(): Promise<string | undefined> {
