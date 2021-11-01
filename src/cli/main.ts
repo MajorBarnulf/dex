@@ -7,6 +7,8 @@ async function main() {
 	const configPath = await findConfig();
 	if (configPath == undefined) configNotFound();
 
+	console.log(`found config: ${configPath}`);
+
 	const dex = await tryParseConfig(configPath);
 	if (dex == undefined) failedToParse();
 
@@ -45,15 +47,23 @@ function configNotFound(): never {
 }
 
 async function tryParseConfig(path: string): Promise<Dex | undefined> {
-	const mod = await importConfig(path);
+	const explicitPath = join(`file://`, path);
+	const mod = await importConfig(explicitPath);
 	const dex = mod["dex"];
-	if (dex instanceof Dex) return dex;
+	if (isDex(dex)) return dex;
 	else return undefined;
 }
 
 async function importConfig(path: string): Promise<DexConfig> {
 	const result = await import(path);
 	return result;
+}
+
+// TODO: better type checking
+function isDex(some: any): some is Dex {
+	if (typeof some["targets"] != "object") return false;
+	if (typeof some["context"] != "object") return false;
+	return true;
 }
 
 function failedToParse(): never {
