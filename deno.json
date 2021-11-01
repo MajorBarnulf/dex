@@ -1,0 +1,8 @@
+{
+	"$schema": "https://cdn.deno.land/deno/versions/v1.15.3/raw/cli/schemas/config-file.v1.json",
+	"fmt": {
+		"options": {
+			"useTabs": true
+		}
+	}
+}
