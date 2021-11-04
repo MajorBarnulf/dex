@@ -1,4 +1,4 @@
-import { Event } from "./deps.ts";
+import { event } from "./deps.ts";
 import { DexEvents } from "./events.ts";
 import { DexError, isError, Result } from "./error.ts";
 import { DexTarget, DexTargetBuilder } from "./DexTarget.ts";
@@ -9,11 +9,11 @@ import { DexContext } from "./DexContext.ts";
  */
 export class Dex {
 	context: DexContext;
-	eventEmitter: Event.EventEmitter<DexEvents>;
+	eventEmitter: event.EventEmitter<DexEvents>;
 
 	constructor() {
 		this.context = new DexContext();
-		this.eventEmitter = new Event.EventEmitter();
+		this.eventEmitter = new event.EventEmitter();
 		// TODO: set default variables ?
 	}
 
