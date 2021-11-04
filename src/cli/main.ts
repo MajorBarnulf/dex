@@ -1,4 +1,4 @@
-import { crayon, path, lib } from "./deps.ts";
+import { crayon, lib, path } from "./deps.ts";
 type Dex = lib.Dex;
 const { dirname, join } = path;
 
@@ -99,7 +99,7 @@ async function importConfig(path: string): Promise<DexConfig> {
 
 // TODO: better type checking
 function isDex(some: any): some is Dex {
-	if (typeof some["targets"] != "object") return false;
+	if (typeof some["eventEmitter"] != "object") return false;
 	if (typeof some["context"] != "object") return false;
 	return true;
 }
