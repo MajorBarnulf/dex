@@ -1,4 +1,6 @@
-import { DexError, isError, Result } from "./error.ts";
+import { DexError, Result } from "./error.ts";
+import { DexTarget } from "./DexTarget.ts";
+import { exec } from "./deps.ts";
 
 /**
  * encapsulates the context in witch the execution will happen
@@ -7,9 +9,11 @@ import { DexError, isError, Result } from "./error.ts";
 
 export class DexContext {
 	environment: Record<string, string>;
+	target: Record<string, DexTarget>;
 	completedTarget: string[];
 
 	constructor() {
+		this.target = {};
 		this.environment = {};
 		this.completedTarget = [];
 	}
@@ -20,21 +24,11 @@ export class DexContext {
 	 * @returns status code at the end of execution
 	 */
 	async execute(
-		commandArguments: string[][] | string[],
+		...command: string[]
 	): Promise<Result<void, "err_command_fail">> {
-		let commands: string[][];
-		if (this.IsSingleCommand(commandArguments)) {
-			commands = [commandArguments as string[]];
-		} else {
-			commands = commandArguments as string[][];
-		}
-
-		for await (const com of commands) {
-			const executionResult = await this.executeCommand(com);
-			if (isError(executionResult)) {
-				return executionResult;
-			}
-		}
+		const concatenated = command.join(` `);
+		const result = await exec(concatenated);
+		if (result.status.code != 0) return new DexError("err_command_fail", concatenated, result.status.code);
 	}
 
 	private IsSingleCommand(cmdArgs: string[][] | string[]): boolean {
@@ -67,5 +61,20 @@ export class DexContext {
 				throw error;
 			}
 		}
+	}
+
+	addTarget (target: DexTarget) {
+		this.target[target.name] = target;
+	}
+
+	getTarget (name: string): DexTarget | undefined {
+		return this.target[name];
+	}
+
+	setVariable (name: string, value: string) {
+		this.environment[name] = value;
+	}
+	getVariable (name: string): string | undefined {
+		return this.environment[name];
 	}
 }

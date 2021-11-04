@@ -4,18 +4,14 @@ import { DexError, isError, Result } from "./error.ts";
 import { DexTarget, DexTargetBuilder } from "./DexTarget.ts";
 import { DexContext } from "./DexContext.ts";
 
-type DexVar = "LOREM";
-
 /**
  * main class of the library, used as handle to prepare the final execution
  */
 export class Dex {
-	targets: DexTarget[];
 	context: DexContext;
 	eventEmitter: Event.EventEmitter<DexEvents>;
 
 	constructor() {
-		this.targets = [];
 		this.context = new DexContext();
 		this.eventEmitter = new Event.EventEmitter();
 		// TODO: set default variables ?
@@ -24,9 +20,11 @@ export class Dex {
 	/**
 	 * @description add possible targets to the environment
 	 */
-	target(target: DexTargetBuilder): this {
-		const builtTarget = new DexTarget(target);
-		this.targets.push(builtTarget);
+	target(...targets: DexTargetBuilder[]): this {
+		for (const target of targets) {
+			const builtTarget = new DexTarget(target);
+			this.context.addTarget(builtTarget);
+		}
 		return this;
 	}
 
@@ -36,7 +34,7 @@ export class Dex {
 	 * @param value : value to set for the variable
 	 * @todo remove ?
 	 */
-	set(name: DexVar, value: string): this {
+	set(name: string, value: string): this {
 		this.context.environment[name] = value;
 		return this;
 	}
@@ -46,8 +44,9 @@ export class Dex {
 	 * @param name : name of the variable to query
 	 * @returns : value of the variable
 	 */
-	get(name: DexVar): string {
-		const result = this.context.environment[name];
+	get(name: string): string {
+		const result = this.context.getVariable(name);
+		if (result === undefined) throw `no variable named: '${name}'`;
 		return result;
 	}
 
@@ -103,7 +102,7 @@ export class Dex {
 	private getTarget(
 		targetName: string,
 	): Result<DexTarget, "err_target_not_found"> {
-		const found = this.targets.find((e) => e.name == targetName);
+		const found = this.context.getTarget(targetName);
 		if (found === undefined) {
 			return new DexError("err_target_not_found", targetName); // failed
 		}
@@ -114,30 +113,5 @@ export class Dex {
 		error: DexError<"err_target_not_found" | "err_target_fail">,
 	) {
 		this.eventEmitter.emit(error.name, ...error.params);
-	}
-
-	// TODO: return better logs of the circular inclusion
-	private verifyDeps(
-		dependents: string[],
-		dep: DexTarget,
-	): Result<void, "err_target_not_found" | "err_circular_deps"> {
-		for (const dependency of dep.dependencies) {
-			if (dependents.includes(dependency)) {
-				return new DexError("err_circular_deps", dep.dependencies, dependency);
-			}
-
-			const targetQueryResult = this.getTarget(dependency);
-			if (isError(targetQueryResult)) {
-				return targetQueryResult;
-			}
-
-			let targetValidityResult = this.verifyDeps(
-				[dependency, ...dependents],
-				targetQueryResult,
-			);
-			if (isError(targetValidityResult)) {
-				return targetValidityResult;
-			}
-		}
 	}
 }
