@@ -1,4 +1,6 @@
-import { crayon, Dex, DexEvents, dirname, Event, join } from "./deps.ts";
+import { crayon, path, lib } from "./deps.ts";
+type Dex = lib.Dex;
+const { dirname, join } = path;
 
 // deno-lint-ignore no-explicit-any
 type DexConfig = any;
