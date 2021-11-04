@@ -24,7 +24,7 @@ export class Dex {
 	/**
 	 * @description add possible targets to the environment
 	 */
-	add_target(target: DexTargetBuilder): this {
+	target(target: DexTargetBuilder): this {
 		const builtTarget = new DexTarget(target);
 		this.targets.push(builtTarget);
 		return this;
@@ -36,9 +36,19 @@ export class Dex {
 	 * @param value : value to set for the variable
 	 * @todo remove ?
 	 */
-	set_variable(name: DexVar, value: string): this {
+	set(name: DexVar, value: string): this {
 		this.context.environment[name] = value;
 		return this;
+	}
+
+	/**
+	 * @description queries a variable from the dex environment and return it's value
+	 * @param name : name of the variable to query
+	 * @returns : value of the variable
+	 */
+	get(name: DexVar): string {
+		const result = this.context.environment[name];
+		return result;
 	}
 
 	/**

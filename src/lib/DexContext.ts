@@ -56,7 +56,7 @@ export class DexContext {
 	 * @param path the path to verify the existence of
 	 * @returns wether the path exists or not
 	 */
-	async file_exists(path: string): Promise<boolean> {
+	async exists(path: string): Promise<boolean> {
 		try {
 			await Deno.stat(path);
 			return true;
